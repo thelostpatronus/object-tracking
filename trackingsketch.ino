@@ -6,6 +6,9 @@ Servo tiltServo;
 int panPin = 8;
 int tiltPin = 9;
 
+int prevX;
+int prevY;
+
 int inputX;
 int inputY;
 
@@ -49,11 +52,12 @@ void loop() {
     }
   }
   if (consecutiveReadings >= consecutiveReadingsRequired) {
-             // run all tracking and computations here
+  Pos();      // run all tracking and computations here
+  delay(1000);
   } else {
     Serial.println("no object");
-  }
-  delay(1000);  // Add a small delay
+    delay(1000);
+  }  // Add a small delay
 }
 
 void printResult(HUSKYLENSResult result) {
@@ -64,5 +68,23 @@ void printResult(HUSKYLENSResult result) {
     inputY = result.yCenter;
   } else {
     consecutiveReadings = 0;
+  }
+}
+void Pos()
+{
+  if(prevX != inputX || prevY != inputY)
+  {
+    int servoX = map(inputX, 360, 0, 70, 179);
+    int servoY = map(inputY, 240, 0, 179, 95);
+
+    servoX = min(servoX, 179);
+    servoX = max(servoX, 70);
+    servoY = min(servoY, 179);
+    servoY = max(servoY, 95);
+    
+    panServo.write(servoX);
+    tiltServo.write(servoY);
+    Serial.println(servoX);
+    Serial.println(servoY);
   }
 }
