@@ -2,13 +2,13 @@
 #include "HUSKYLENS.h"
 Servo panServo;
 Servo tiltServo;
-
+int width = 360, height = 240;  // total resolution of the video
 int panPin = 8;
 int tiltPin = 9;
-
+const int angle = 2;  // degree of increment or decrement
 int prevX;
 int prevY;
-
+int xpos = 0, ypos = 0;
 int inputX;
 int inputY;
 
@@ -52,8 +52,26 @@ void loop() {
     }
   }
   if (consecutiveReadings >= consecutiveReadingsRequired) {
-  Pos();      // run all tracking and computations here
-  delay(1000);
+    if (inputX > width / 2 + 30)
+      xpos -= angle;
+    if (inputX < width / 2 - 30)
+      xpos += angle;
+    if (inputY < height / 2 + 30)
+      ypos += angle;
+    if (inputY > height / 2 - 30)
+      ypos -= angle;  // run all tracking and computations here
+    if (xpos >= 180)
+      xpos = 180;
+    else if (xpos <= 0)
+      xpos = 0;
+    if (ypos >= 90)
+      ypos = 90;
+    else if (ypos <= 0)
+      ypos = 0;
+
+    panServo.write(xpos);
+    tiltServo.write(ypos);
+    delay(100);
   } else {
     Serial.println("no object");
     delay(1000);
@@ -68,23 +86,5 @@ void printResult(HUSKYLENSResult result) {
     inputY = result.yCenter;
   } else {
     consecutiveReadings = 0;
-  }
-}
-void Pos()
-{
-  if(prevX != inputX || prevY != inputY)
-  {
-    int servoX = map(inputX, 360, 0, 0, 179);
-    int servoY = map(inputY, 240, 0, 90, 0);
-
-    servoX = min(servoX, 179);
-    servoX = max(servoX, 0);
-    servoY = min(servoY, 90);
-    servoY = max(servoY, 0);
-    
-    panServo.write(servoX);
-    tiltServo.write(servoY);
-    Serial.println(servoX);
-    Serial.println(servoY);
   }
 }
