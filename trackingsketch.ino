@@ -74,13 +74,13 @@ void Pos()
 {
   if(prevX != inputX || prevY != inputY)
   {
-    int servoX = map(inputX, 360, 0, 70, 179);
-    int servoY = map(inputY, 240, 0, 179, 95);
+    int servoX = map(inputX, 360, 0, 0, 179);
+    int servoY = map(inputY, 240, 0, 90, 0);
 
     servoX = min(servoX, 179);
-    servoX = max(servoX, 70);
-    servoY = min(servoY, 179);
-    servoY = max(servoY, 95);
+    servoX = max(servoX, 0);
+    servoY = min(servoY, 90);
+    servoY = max(servoY, 0);
     
     panServo.write(servoX);
     tiltServo.write(servoY);
