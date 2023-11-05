@@ -3,42 +3,35 @@
 Servo panServo;
 Servo tiltServo;
 int width = 360, height = 240;  // total resolution of the video
-int panPin = 8;
-int tiltPin = 9;
+int panPin = 5;
+int tiltPin = 6;
 const int angle = 2;  // degree of increment or decrement
 int prevX;
 int prevY;
 int xpos = 0, ypos = 0;
 int inputX;
 int inputY;
-
-int minPanAngle = 0;   // Minimum angle for the pan servo
-int minTiltAngle = 0;  // Minimum angle for the tilt servo
-
-int consecutiveReadingsRequired = 1;
+int consecutiveReadingsRequired = 2;
 int consecutiveReadings = 0;
-
-void readObjectCoordinates(HUSKYLENSResult result);
 HUSKYLENS huskylens;
 void printResult(HUSKYLENSResult result);
-
 void setup() {
   Serial.begin(9600);
+  pinMode(7, OUTPUT);
   Wire.begin();
   panServo.attach(panPin);
   tiltServo.attach(tiltPin);
+  tiltServo.write(0);
   while (!huskylens.begin(Wire)) {
     Serial.println(F("Begin failed!"));
     Serial.println(F("1.Please recheck the \"Protocol Type\" in HUSKYLENS (General Settings>>Protocol Type>>I2C)"));
     Serial.println(F("2.Please recheck the connection."));
     delay(100);
   }
-  // Initialize PID control
-  tiltServo.write(0);
+  digitalWrite(7, HIGH);
 }
 
 void loop() {
-
   if (!huskylens.request()) Serial.println(F("Fail to request data from HUSKYLENS, recheck the connection!"));
   else if (!huskylens.isLearned()) Serial.println(F("Nothing learned, press learn button on HUSKYLENS to learn one!"));
   if (!huskylens.available()) {
@@ -52,6 +45,7 @@ void loop() {
     }
   }
   if (consecutiveReadings >= consecutiveReadingsRequired) {
+    Serial.println("tracking");
     if (inputX > width / 2 + 30)
       xpos -= angle;
     if (inputX < width / 2 - 30)
@@ -64,19 +58,24 @@ void loop() {
       xpos = 180;
     else if (xpos <= 0)
       xpos = 0;
-    if (ypos >= 90)
-      ypos = 90;
+    if (ypos >= 45)
+      ypos = 45;
     else if (ypos <= 0)
       ypos = 0;
 
     panServo.write(xpos);
     tiltServo.write(ypos);
-    delay(100);
+    Serial.println(xpos);
+    Serial.println(ypos);
+    if (consecutiveReadings >= 25) {
+      digitalWrite(7, LOW);
+    }
   } else {
     Serial.println("no object");
-    delay(1000);
-  }  // Add a small delay
+    digitalWrite(7, HIGH);
+  }  // Add a small
 }
+
 
 void printResult(HUSKYLENSResult result) {
   if (result.command == COMMAND_RETURN_BLOCK) {
